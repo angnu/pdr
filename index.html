@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>PDR Drive — MVP</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app">
+    <section id="startScreen" class="screen active">
+      <div class="brand">PDR Drive</div>
+      <h1>Симулятор ПДР від першої особи</h1>
+      <p>Перша MVP-сесія: знаки пріоритету, пішохідний перехід, світлофор і базові дії водія.</p>
+      <div class="card">
+        <strong>Сесія до 10 хв:</strong>
+        <span>1. Інструктор → 2. Тренування → 3. Іспит</span>
+      </div>
+      <button id="startBtn" class="primary">Почати сесію</button>
+    </section>
+
+    <section id="gameScreen" class="screen">
+      <div class="hud">
+        <div>
+          <span id="stageLabel">Проїзд 1/3</span>
+          <strong id="lessonTitle">Інструктор</strong>
+        </div>
+        <div class="score"><span id="scoreLabel">0</span> балів</div>
+      </div>
+
+      <div id="scene" class="scene">
+        <div class="sky"></div>
+        <div class="city city-left"></div>
+        <div class="city city-right"></div>
+        <div class="road">
+          <div class="lane"></div>
+          <div class="crosswalk hidden"></div>
+        </div>
+        <div id="trafficLight" class="traffic-light hidden"><span></span><span></span><span></span></div>
+        <div id="sign" class="sign hidden"></div>
+        <div id="pedestrian" class="pedestrian hidden"></div>
+        <div id="carAhead" class="car-ahead hidden"></div>
+        <div class="car-hood"></div>
+      </div>
+
+      <div id="instructionPanel" class="panel">
+        <div id="message">Готово.</div>
+        <div id="questionBox" class="question hidden">
+          <div id="questionText"></div>
+          <div id="answers"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button data-action="left">←</button>
+        <button data-action="brake">Гальмо</button>
+        <button data-action="gas">Газ</button>
+        <button data-action="right">→</button>
+        <button data-action="lights">Фари</button>
+        <button data-action="turn">Поворотник</button>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen">
+      <div class="brand">PDR Drive</div>
+      <h1>Результат сесії</h1>
+      <div id="finalScore" class="big-score"></div>
+      <div id="mistakes" class="result-card"></div>
+      <button id="restartBtn" class="primary">Пройти ще раз</button>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
