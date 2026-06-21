@@ -22,6 +22,7 @@ const els = {
   sign: document.getElementById('sign'),
   trafficLight: document.getElementById('trafficLight'),
   crosswalk: document.getElementById('crosswalk'),
+  intersection: document.getElementById('intersection'),
   decisionMarker: document.getElementById('decisionMarker'),
   pedestrian: document.getElementById('pedestrian'),
   carAhead: document.getElementById('carAhead'),
@@ -35,19 +36,19 @@ const els = {
 const signs = {
   yield: {
     name: 'Дати дорогу',
-    svg: `<svg viewBox="0 0 100 100" aria-label="Дати дорогу"><polygon points="50,88 8,15 92,15" fill="#fff" stroke="#ef4444" stroke-width="12" stroke-linejoin="round"/></svg>`
+    src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/UA_road_sign_2.1.svg/120px-UA_road_sign_2.1.svg.png'
   },
   stop: {
     name: 'STOP',
-    svg: `<svg viewBox="0 0 100 100" aria-label="STOP"><polygon points="32,8 68,8 92,32 92,68 68,92 32,92 8,68 8,32" fill="#dc2626" stroke="#fff" stroke-width="5"/><text x="50" y="59" text-anchor="middle" font-size="24" font-weight="900" fill="#fff">STOP</text></svg>`
+    src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/UA_road_sign_2.2.svg/120px-UA_road_sign_2.2.svg.png'
   },
   pedestrian: {
-    name: 'Пішохідний перехід',
-    svg: `<svg viewBox="0 0 100 100" aria-label="Пішохідний перехід"><rect x="9" y="9" width="82" height="82" rx="8" fill="#2563eb" stroke="#fff" stroke-width="5"/><polygon points="50,22 76,78 24,78" fill="#fff"/><circle cx="50" cy="36" r="6" fill="#111827"/><path d="M48 44 L41 61 M51 44 L60 60 M47 51 L58 51" stroke="#111827" stroke-width="5" stroke-linecap="round"/><path d="M31 72 H70" stroke="#111827" stroke-width="5"/></svg>`
+    name: 'Пішохідний перехід попереду',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/UA_road_sign_1.32.svg/120px-UA_road_sign_1.32.svg.png'
   },
   speed50: {
     name: 'Обмеження швидкості 50',
-    svg: `<svg viewBox="0 0 100 100" aria-label="50"><circle cx="50" cy="50" r="39" fill="#fff" stroke="#dc2626" stroke-width="10"/><text x="50" y="61" text-anchor="middle" font-size="32" font-weight="900" fill="#111827">50</text></svg>`
+    src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/UA_road_sign_3.29-050.svg/120px-UA_road_sign_3.29-050.svg.png'
   }
 };
 
@@ -56,9 +57,9 @@ const scenarios = [
     id: 'yield-car',
     title: 'Знак «Дати дорогу»',
     sign: 'yield',
-    objects: ['crossCar'],
+    objects: ['intersection','crossCar'],
     shouldStop: true,
-    alert: 'Попереду знак «Дати дорогу». Чи можеш проїхати? Якщо ні — гальмуй у зоні.',
+    alert: 'Попереду перехрестя і знак «Дати дорогу». Якщо проїзд небезпечний — гальмуй у зоні.',
     instructor: 'Знак «Дати дорогу» означає: продовжувати рух можна лише тоді, коли ти не змусиш учасників із перевагою змінити швидкість або напрямок. У цьому сценарії авто на головній дорозі наближається, тому треба пригальмувати або зупинитися.',
     stopQuestion: {
       text: 'Чому ти зупинився?',
@@ -95,9 +96,9 @@ const scenarios = [
   {
     id: 'yellow-light',
     title: 'Жовтий сигнал світлофора',
-    objects: ['trafficLight'],
+    objects: ['intersection','trafficLight'],
     shouldStop: true,
-    alert: 'Попереду жовтий сигнал. Оціни ситуацію. Якщо зупинка безпечна — гальмуй.',
+    alert: 'Попереду світлофор на перехресті. Якщо зупинка безпечна — гальмуй.',
     instructor: 'Жовтий сигнал попереджає про зміну сигналу. У навчальному сценарії є достатня дистанція, тому правильна дія — плавно зменшити швидкість і зупинитися.',
     stopQuestion: {
       text: 'Чому ти зупинився?',
@@ -184,20 +185,20 @@ function updateSimulation(dt){
   const drag = state.speed > 0 ? 5 : 0;
   state.speed = clamp(state.speed + (accel - brake - drag) * dt, 0, 54);
   state.position += state.speed * dt * 0.36;
-  state.roadOffset = (state.roadOffset + state.speed * dt * 5.4) % 82;
+  state.roadOffset = (state.roadOffset + state.speed * dt * 5.4) % 76;
 
   if(state.position > 28 && state.position < 74 && !state.decisionMade){
     els.alertBanner.classList.remove('hidden');
   }
 
-  if(state.position >= 72 && state.position <= 92 && !state.decisionMade){
+  if(state.position >= 72 && state.position <= 94 && !state.decisionMade){
     els.decisionMarker.classList.remove('hidden');
     if(state.speed < 2 && state.controls.brake){
       makeDecision('stopped');
     }
   }
 
-  if(state.position > 101 && !state.decisionMade){
+  if(state.position > 103 && !state.decisionMade){
     makeDecision('passed');
   }
 
@@ -210,16 +211,28 @@ function updateVisuals(){
   els.speedLabel.textContent = Math.round(state.speed);
   els.scoreLabel.textContent = state.score;
 
-  const progress = clamp(state.position / 100, 0, 1);
-  const scale = 0.55 + progress * 0.9;
-  const top = 22 + progress * 32;
-  const signX = 14 - progress * 3;
-  els.sign.style.transform = `translate(${signX}px, ${progress * 28}px) scale(${scale})`;
-  els.trafficLight.style.transform = `translate(${-progress * 18}px, ${progress * 24}px) scale(${scale})`;
-  els.crossCar.style.transform = `translateX(${-progress * 66}px) scale(${0.7 + progress * 0.45})`;
-  els.pedestrian.style.transform = `translate(${-progress * 26}px, ${progress * 26}px) scale(${0.75 + progress * 0.55})`;
-  els.carAhead.style.top = `${Math.min(60, top + 14)}%`;
-  els.carAhead.style.transform = `translateX(-50%) scale(${0.55 + progress * 1.05})`;
+  const p = clamp(state.position / 100, 0, 1);
+  const approach = clamp((state.position - 8) / 92, 0, 1);
+  const scale = 0.45 + approach * 0.95;
+  const signX = 10 - approach * 12;
+  els.sign.style.transform = `translate(${signX}px, ${approach * 42}px) scale(${scale})`;
+  els.trafficLight.style.transform = `translate(${-approach * 22}px, ${approach * 33}px) scale(${0.65 + approach * 0.55})`;
+
+  const eventTop = 16 + p * 56;
+  const eventScale = 0.28 + p * 1.85;
+  const eventOpacity = clamp((p - 0.02) * 2.2, 0, 1);
+  els.crosswalk.style.top = `${eventTop}%`;
+  els.crosswalk.style.transform = `translateX(-50%) perspective(170px) rotateX(57deg) scale(${eventScale})`;
+  els.crosswalk.style.opacity = eventOpacity;
+  els.intersection.style.top = `${16 + p * 48}%`;
+  els.intersection.style.transform = `translateX(-50%) perspective(190px) rotateX(56deg) scale(${0.32 + p * 1.55})`;
+  els.intersection.style.opacity = clamp((p - 0.04) * 2.4, 0, 0.95);
+
+  els.crossCar.style.transform = `translateX(${-p * 128}px) translateY(${p * 18}px) scale(${0.65 + p * 0.65})`;
+  els.pedestrian.style.transform = `translate(${-p * 58}px, ${p * 52}px) scale(${0.55 + p * 1.35})`;
+  els.pedestrian.style.opacity = clamp((p - 0.03) * 2.8, 0, 1);
+  els.carAhead.style.top = `${Math.min(60, 27 + p * 43)}%`;
+  els.carAhead.style.transform = `translateX(-50%) scale(${0.46 + p * 1.16})`;
 }
 
 function loadScenario(){
@@ -238,11 +251,14 @@ function loadScenario(){
   els.lessonTitle.textContent = `${state.scenarioIndex + 1}/${scenarios.length} · ${scenario.title}`;
 
   if(scenario.sign){ showSign(scenario.sign); }
+  if(scenario.objects.includes('intersection')) els.intersection.classList.remove('hidden');
   if(scenario.objects.includes('crosswalk')) els.crosswalk.classList.remove('hidden');
   if(scenario.objects.includes('pedestrian')) els.pedestrian.classList.remove('hidden');
   if(scenario.objects.includes('carAhead')) els.carAhead.classList.remove('hidden');
   if(scenario.objects.includes('crossCar')) els.crossCar.classList.remove('hidden');
-  if(scenario.objects.includes('trafficLight')) { els.trafficLight.className = 'traffic-light yellow'; }
+  if(scenario.objects.includes('trafficLight')) els.trafficLight.className = 'traffic-light yellow';
+
+  updateVisuals();
 
   if(state.mode === 'instructor'){
     els.message.textContent = scenario.instructor;
@@ -268,6 +284,7 @@ function resetScene(){
   els.sign.classList.add('hidden');
   els.trafficLight.className = 'traffic-light hidden';
   els.crosswalk.classList.add('hidden');
+  els.intersection.classList.add('hidden');
   els.pedestrian.classList.add('hidden');
   els.carAhead.classList.add('hidden');
   els.crossCar.classList.add('hidden');
@@ -275,7 +292,7 @@ function resetScene(){
 
 function showSign(id){
   const sign = signs[id];
-  els.sign.innerHTML = sign.svg;
+  els.sign.innerHTML = `<img src="${sign.src}" alt="${sign.name}" loading="eager">`;
   els.sign.classList.remove('hidden');
 }
 
